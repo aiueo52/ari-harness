@@ -30,7 +30,7 @@ It is not an interactive assistant and has no UI. ari itself never commits or pu
 Other built-in behaviour, all visible in `ari.mjs`:
 
 - **Budgets:** 250 tool calls for the root, 60 per sub-agent; a 30-minute deadline for each sub-agent task, counted from when it starts running: a model turn still running then is stopped, and no model turn starts after it, not even the retry after a failed check. A check command already running at the deadline isn't stopped (it has its own 10-minute timeout), so a task can end up to that much later; bash output kept in context is trimmed to 12,000 chars; bash commands default to a 600 s timeout.
-- **Nudges and guards:** after 4 commands without an edit, the agent is told to stop re-verifying. Creating a *new* Markdown/README-style file is refused once unless the brief mentions docs.
+- **Nudges and guards:** once an agent has edited something, 4 commands in a row without another edit get it a note to stop re-verifying and report. Creating a *new* Markdown/README-style file is refused once unless the brief mentions docs.
 - **Stall watchdog:** a model stream that stays silent too long is cut and reopened (up to 3 times per agent, with doubled limits each time).
 - **Context files:** the root loads `AGENTS.md` / `CLAUDE.md` from the working directory and its parents the way pi does (disable with `--no-context`), plus a global one at `~/.local/state/ari/pi/AGENTS.md` if you create it; sub-agents never load them. A context file that is, or links to, a secret is skipped. ari loads none of pi's own configuration: no `.pi/settings.json` (so no packages are installed), no `SYSTEM.md`/`APPEND_SYSTEM.md`, extensions, skills, prompt templates or themes.
 - **Priority tier:** requests ask for `service_tier: "priority"` unless `--no-fast` is given.
@@ -67,7 +67,7 @@ npx pi        # then type /login and choose ChatGPT Plus/Pro (Codex)
 
 See pi's [provider documentation](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/providers.md) for details. Never commit that file or paste its contents anywhere.
 
-**Terms:** ari is not affiliated with or endorsed by OpenAI. Before using it, check yourself whether your plan's terms allow third-party clients and automated use like this (a harness running many requests in parallel, unattended). ari also reads your quota from an undocumented ChatGPT endpoint (see [Cost and quota](#cost-and-quota)).
+**Terms:** ari is not affiliated with or endorsed by OpenAI. Before using it, check yourself whether your plan's terms allow third-party clients and automated use like this (a harness running many requests in parallel, unattended). ari is intended for personal use with your own subscription, not for shared, multi-user or production use. ari also reads your quota from an undocumented ChatGPT endpoint (see [Cost and quota](#cost-and-quota)).
 
 ## Usage
 
@@ -90,6 +90,7 @@ usage: ari [options] "task"      (task "-" reads stdin)
   --sandbox-check   set up the sandbox for DIR as a run would, say whether it works, and exit (no task, no model)
   --json            print the result as JSON
   -q                no progress on stderr
+  -h, --help        show this help
 env: ARI_EXTRA_SECRETS, ARI_ALLOW_SECRETS, ARI_EXTRA_WRITABLE (colon-separated paths; relative to $HOME or absolute)
 ```
 
@@ -229,7 +230,7 @@ pi's own [security notes](https://github.com/earendil-works/pi/blob/main/package
 ## Cost and quota
 
 - ari uses your ChatGPT/Codex subscription quota, not API billing. Parallel sub-agents multiply usage; `--max` limits concurrency and `--child` / `--child-effort` pick cheaper workers.
-- The weekly quota is read from a ChatGPT backend endpoint (`chatgpt.com/backend-api/wham/usage`), sending your login token to chatgpt.com. That endpoint is not a documented API and may change; ari takes the longest usage window it reports and shows `unknown` when it cannot read one. Whether calling it fits your plan's terms is for you to check.
+- The weekly quota is read from a ChatGPT backend endpoint (`chatgpt.com/backend-api/wham/usage`), sending your login token to chatgpt.com. That endpoint is not a documented API and may change; ari reads it at start, every 180 s during a run, and at the end; it takes the longest usage window the endpoint reports and shows `unknown` when it cannot read one. Whether calling it fits your plan's terms is for you to check.
 - At 99% weekly usage ari refuses to start (exit 3, override with `--force`) and refuses to start new sub-agents; the footer warns when the limit is near.
 - Priority tier is requested by default. How your provider counts priority requests against your plan is up to them; use `--no-fast` if in doubt.
 - ari does not compute money cost (model costs are set to 0 in its model definitions).
@@ -245,7 +246,7 @@ pi's own [security notes](https://github.com/earendil-works/pi/blob/main/package
 - The stall-watchdog timings were tuned for GPT-6 streaming behaviour.
 - pi's own customisation (`.pi/settings.json`, packages, extensions, skills, `SYSTEM.md`/`APPEND_SYSTEM.md`) is ignored on purpose; only `AGENTS.md`/`CLAUDE.md` context files are used.
 - Tests (`npm test`) cover the sandbox, the resource-loader settings, the verdict and option parsing, not the agent loop.
-- ari sets `TMPDIR` to its private per-run directory. With the sandbox on, commands get your own `TMPDIR` back; with `--sandbox off` they inherit the private one. `tools/` holds two diagnostic probes used while tuning; they make real model requests.
+- ari sets `TMPDIR` to its private per-run directory. With the sandbox on, commands get your own `TMPDIR` back; with `--sandbox off` they inherit the private one. ari also sets `PYTHONPYCACHEPREFIX` to `~/.cache/ari/pycache` (unless it is already set), so Python bytecode caches stay out of the workspace; commands and the check inherit it. `tools/` holds two diagnostic probes used while tuning; they make real model requests.
 
 ## Credits and licence
 

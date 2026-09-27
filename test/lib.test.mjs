@@ -336,6 +336,26 @@ test("warnings reach the text footer and --json alike", () => {
   assert.deepEqual(JSON.parse(resultJson({ status: "DONE", warnings })).warnings, warnings);
 });
 
+test("an unknown option or a missing value fails like other option errors: message, usage, exit code 1", () => {
+  const ari = fileURLToPath(new URL("../ari.mjs", import.meta.url));
+  for (const args of [["--version"], ["--sandbox-chek"], ["-C"]]) {
+    let r;
+    try { execFileSync(process.execPath, [ari, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }); } catch (e) { r = e; }
+    assert.equal(r?.status, 1, args.join(" "));
+    assert.match(r.stdout, /^FAILED: (Unknown option|Option '-C, --cd <value>' argument missing)/, args.join(" "));
+    assert.match(r.stdout, /\nusage: ari \[options\]/);
+    assert.doesNotMatch(r.stderr, /\n\s+at /, "no stack trace");
+  }
+});
+
+const readme = new URL("../README.md", import.meta.url);
+test("the README's usage block is exactly ari --help", { skip: !fs.existsSync(readme) && "no README.md in this copy" }, () => {
+  const help = execFileSync(process.execPath, [fileURLToPath(new URL("../ari.mjs", import.meta.url)), "--help"], { encoding: "utf8" });
+  const block = fs.readFileSync(readme, "utf8").match(/## Usage\n\n```text\n([\s\S]*?)```/)?.[1];
+  assert.equal(block, help);
+  assert.match(help, /^  -h, --help +show this help$/m);
+});
+
 test("ari starts from an install path with spaces and non-ASCII characters", () => {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "ari-path-")));
   try {

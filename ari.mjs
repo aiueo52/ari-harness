@@ -63,31 +63,6 @@ const DOC_FILE = /\.(md|mdx|markdown|rst|adoc)$|(^|\/)(README|NOTES|TODO|CHANGEL
 const JUNK = /(^|\/)(__pycache__|\.pytest_cache|\.mypy_cache|\.ruff_cache|node_modules|\.cache)(\/|$)|\.pyc$/;
 const DOC_ASK = /\b(docs?|readme|markdown|documentation|document)\b|\.md\b|文書|ドキュメント|説明書|手順書|メモ/i;
 
-const { values: o, positionals } = parseArgs({
-  allowPositionals: true,
-  options: {
-    cd: { type: "string", short: "C" },
-    model: { type: "string", short: "m", default: "sol" },
-    effort: { type: "string", short: "e" },
-    child: { type: "string", default: "luna" },
-    "child-effort": { type: "string" },
-    max: { type: "string", default: "12" },
-    depth: { type: "string", default: "1" },
-    check: { type: "string" },
-    sandbox: { type: "string", default: "workspace" },
-    "allow-secret": { type: "string", multiple: true },
-    "no-fast": { type: "boolean" },
-    "no-context": { type: "boolean" },
-    resume: { type: "string" },
-    status: { type: "boolean" },
-    json: { type: "boolean" },
-    quiet: { type: "boolean", short: "q" },
-    force: { type: "boolean" },
-    help: { type: "boolean", short: "h" },
-    "sandbox-check": { type: "boolean" },
-  },
-});
-
 const USAGE = `usage: ari [options] "task"      (task "-" reads stdin)
   -C DIR            work in DIR (default: cwd)
   -m MODEL          root model: sol (default), astra, luna. Only GPT-6 is worth it; other ChatGPT models cost more for less
@@ -106,7 +81,40 @@ const USAGE = `usage: ari [options] "task"      (task "-" reads stdin)
   --sandbox-check   set up the sandbox for DIR as a run would, say whether it works, and exit (no task, no model)
   --json            print the result as JSON
   -q                no progress on stderr
+  -h, --help        show this help
 env: ARI_EXTRA_SECRETS, ARI_ALLOW_SECRETS, ARI_EXTRA_WRITABLE (colon-separated paths; relative to $HOME or absolute)`;
+// An unknown option or a missing value is reported like the other option errors, not as a stack trace.
+let o, positionals;
+try {
+  ({ values: o, positionals } = parseArgs({
+    allowPositionals: true,
+    options: {
+      cd: { type: "string", short: "C" },
+      model: { type: "string", short: "m", default: "sol" },
+      effort: { type: "string", short: "e" },
+      child: { type: "string", default: "luna" },
+      "child-effort": { type: "string" },
+      max: { type: "string", default: "12" },
+      depth: { type: "string", default: "1" },
+      check: { type: "string" },
+      sandbox: { type: "string", default: "workspace" },
+      "allow-secret": { type: "string", multiple: true },
+      "no-fast": { type: "boolean" },
+      "no-context": { type: "boolean" },
+      resume: { type: "string" },
+      status: { type: "boolean" },
+      json: { type: "boolean" },
+      quiet: { type: "boolean", short: "q" },
+      force: { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+      "sandbox-check": { type: "boolean" },
+    },
+  }));
+} catch (e) {
+  console.log(`FAILED: ${e.message}\n${USAGE}`);
+  process.exit(1);
+}
+
 
 let run; // the one run this process executes
 

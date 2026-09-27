@@ -18,7 +18,7 @@ export const SECRET_DEFAULTS = [
   ".netrc", ".git-credentials", ".config/git/credentials", ".config/gh", ".config/hub",
   ".npmrc", ".yarnrc.yml", ".pypirc", ".cargo/credentials", ".cargo/credentials.toml", ".gem/credentials",
   // AI provider logins and keys
-  ".codex/auth.json", ".pi/agent/auth.json", ".claude/.credentials.json", ".config/openrouter", ".config/deepseek",
+  ".codex/auth.json", ".pi/agent/auth.json", ".claude/.credentials.json", ".claude.json", ".config/openrouter", ".config/deepseek",
   ".cache/huggingface/token", ".huggingface/token",
   // shell history and other agents' transcripts often hold pasted tokens
   ".bash_history", ".zsh_history", ".claude/projects", ".codex/sessions", ".pi/agent/sessions",
