@@ -1,0 +1,25 @@
+{
+  "name": "ari-harness",
+  "version": "0.1.0",
+  "description": "Headless one-shot coding harness: a GPT-6 root agent that delegates to parallel sub-agents, built on pi-coding-agent and meant to be driven by a manager agent.",
+  "private": true,
+  "license": "MIT",
+  "author": "aiueo52",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aiueo52/ari-harness.git"
+  },
+  "type": "module",
+  "bin": {
+    "ari": "ari.mjs"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.0"
+  }
+}

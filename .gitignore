@@ -1,0 +1,5 @@
+node_modules/
+npm-debug.log*
+# ari keeps run logs outside the repo (~/.local/state/ari); never commit them.
+runs/
+*.log
